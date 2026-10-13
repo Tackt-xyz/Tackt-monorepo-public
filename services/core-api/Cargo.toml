@@ -1,0 +1,50 @@
+[package]
+name = "tackt-core-api"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+alloy-rlp.workspace = true
+ethnum.workspace = true
+solana-transaction.workspace = true
+solana-message.workspace = true
+wincode.workspace = true
+anyhow.workspace = true
+async-trait.workspace = true
+axum.workspace = true
+base64.workspace = true
+bs58.workspace = true
+ed25519-dalek.workspace = true
+chrono.workspace = true
+clap = { workspace = true, features = ["derive", "env"] }
+cookie.workspace = true
+jsonwebtoken.workspace = true
+sha2.workspace = true
+k256.workspace = true
+sha3.workspace = true
+hex.workspace = true
+rmp-serde.workspace = true
+reqwest = { workspace = true, features = ["json", "rustls-tls", "stream"] }
+serde.workspace = true
+serde_json = { workspace = true, features = ["raw_value"] }
+strum = { workspace = true, features = ["derive"] }
+subtle.workspace = true
+thiserror.workspace = true
+tackt-nats.workspace = true
+tackt-postgres.workspace = true
+tackt-primitives.workspace = true
+tackt-telemetry.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tower-http = { workspace = true, features = ["cors", "set-header"] }
+metrics.workspace = true
+moka = { workspace = true, features = ["sync"] }
+uuid.workspace = true
+utoipa = { workspace = true, features = ["axum_extras", "chrono", "uuid"] }
+
+[dev-dependencies]
+tackt-postgres = { workspace = true, features = ["test-support"] }
+p256.workspace = true
+tower = { workspace = true, features = ["util"] }

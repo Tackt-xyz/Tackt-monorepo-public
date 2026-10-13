@@ -1,0 +1,28 @@
+# Disposable local development only: stopping a container discards its data.
+services:
+  postgres:
+    image: postgres:17.5-alpine
+    restart: "no"
+    environment:
+      POSTGRES_USER: tackt
+      POSTGRES_PASSWORD: tackt
+      POSTGRES_DB: ${POSTGRES_DB:-indexer}
+    ports: ["127.0.0.1:5432:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tackt -d \"$$POSTGRES_DB\""]
+      interval: 2s
+      timeout: 2s
+      retries: 20
+    tmpfs: ["/var/lib/postgresql/data"]
+  nats:
+    image: nats:2.11-alpine
+    restart: "no"
+    command: ["-c", "/etc/nats/nats.conf"]
+    volumes: ["./nats.conf:/etc/nats/nats.conf:ro"]
+    ports: ["127.0.0.1:4222:4222"]
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:8222/healthz"]
+      interval: 2s
+      timeout: 2s
+      retries: 20
+    tmpfs: ["/data"]

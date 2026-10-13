@@ -1,0 +1,111 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: "1"
+
+jobs:
+  architecture-and-format:
+    name: Architecture and formatting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust 1.91 with rustfmt
+        uses: dtolnay/rust-toolchain@1.91
+        with:
+          components: rustfmt
+
+      - name: Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
+
+      - name: Check architecture boundaries
+        run: ./scripts/check-boundaries.sh
+
+      - name: Verify locked dependency resolution
+        run: cargo metadata --locked --format-version 1 > /dev/null
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+  dependencies:
+    name: Dependency policy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Check advisories, licenses, bans, and sources
+        uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          command: check
+
+  openapi:
+    name: OpenAPI freshness
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.91
+      - uses: Swatinem/rust-cache@v2
+      - name: Check generated Core API contract
+        run: cargo run --locked -p tackt-core-api --example export_openapi -- --check
+      - name: Check schema references
+        run: cargo test --locked -p tackt-core-api --lib openapi::tests
+
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust 1.91 with Clippy
+        uses: dtolnay/rust-toolchain@1.91
+        with:
+          components: clippy
+
+      - name: Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
+
+      - name: Run strict workspace Clippy
+        run: cargo clippy --locked --workspace --all-targets --all-features -- -D warnings
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    env:
+      POSTGRES_DB: tackt_test
+      DATABASE_URL: postgres://tackt:tackt@127.0.0.1:5432/tackt_test
+      NATS_URL: nats://127.0.0.1:4222
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust 1.91
+        uses: dtolnay/rust-toolchain@1.91
+
+      - name: Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
+
+      - name: Start disposable test infrastructure
+        run: docker compose -f deploy/compose.yaml up -d --wait postgres nats
+
+      - name: Run all workspace tests
+        run: cargo test --locked --workspace --all-targets --all-features
+
+      - name: Stop disposable test infrastructure
+        if: always()
+        run: docker compose -f deploy/compose.yaml down

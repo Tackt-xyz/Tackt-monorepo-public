@@ -1,0 +1,46 @@
+[package]
+name = "risk-engine"
+version = "0.1.0"
+edition.workspace = true
+rust-version = "1.91"
+description = "Low-latency, deterministic in-memory risk processing engine"
+license = "UNLICENSED"
+publish = false
+
+[dependencies]
+anyhow.workspace = true
+axum.workspace = true
+chrono.workspace = true
+cpu-time.workspace = true
+dotenvy.workspace = true
+envy.workspace = true
+ethnum.workspace = true
+metrics.workspace = true
+metrics-exporter-prometheus.workspace = true
+rayon.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+stats_alloc.workspace = true
+subtle.workspace = true
+strum = { workspace = true, features = ["derive"] }
+tackt-nats.workspace = true
+tackt-postgres.workspace = true
+tackt-primitives.workspace = true
+tackt-telemetry.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["net"] }
+tracing.workspace = true
+uuid.workspace = true
+
+[dev-dependencies]
+tackt-primitives = { workspace = true, features = ["test-support"] }
+tackt-postgres = { workspace = true, features = ["test-support"] }
+tower.workspace = true
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = "deny"
+pedantic = "deny"

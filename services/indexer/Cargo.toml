@@ -1,0 +1,41 @@
+[package]
+name = "tackt-indexer"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+axum.workspace = true
+chrono.workspace = true
+clap = { workspace = true, features = ["derive", "env"] }
+futures-util.workspace = true
+metrics.workspace = true
+prost.workspace = true
+reqwest = { workspace = true, features = ["json", "rustls-tls", "stream"] }
+serde.workspace = true
+serde_json = { workspace = true, features = ["raw_value"] }
+tackt-nats.workspace = true
+tackt-postgres.workspace = true
+tackt-primitives.workspace = true
+tackt-telemetry.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tokio-stream = { workspace = true, features = ["net"] }
+tokio-tungstenite = { workspace = true, features = ["rustls-tls-webpki-roots"] }
+tonic.workspace = true
+tonic-prost.workspace = true
+tracing.workspace = true
+url.workspace = true
+uuid.workspace = true
+zstd.workspace = true
+
+[dev-dependencies]
+pretty_assertions.workspace = true
+tower = { workspace = true, features = ["util"] }
+tonic = { workspace = true, features = ["router", "server"] }
+
+[build-dependencies]
+protoc-bin-vendored.workspace = true
+tonic-prost-build.workspace = true

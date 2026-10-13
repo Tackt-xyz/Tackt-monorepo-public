@@ -1,0 +1,37 @@
+{
+    "extraKnownMarketplaces": {
+        "click-tools": {
+            "source": {
+                "source": "github",
+                "repo": "tradeonapex/claude-plugins"
+            }
+        }
+    },
+    "enabledPlugins": {
+        "click-meta@click-tools": true
+    },
+    "hooks": {
+        "UserPromptSubmit": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "f=\"$(git rev-parse --git-common-dir 2>/dev/null)/FETCH_HEAD\"; [ -n \"$(find \"$f\" -mmin -5 2>/dev/null)\" ] || git fetch origin main --quiet 2>/dev/null || true",
+                        "timeout": 15
+                    }
+                ]
+            }
+        ],
+        "SessionEnd": [
+            {
+                "matcher": "logout|prompt_input_exit|other",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "bash \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/remove-merged-worktree.sh"
+                    }
+                ]
+            }
+        ]
+    }
+}

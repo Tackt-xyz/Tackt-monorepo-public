@@ -1,0 +1,3522 @@
+{
+  "components": {
+    "schemas": {
+      "AccountRequest": {
+        "properties": {
+          "account": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "account"
+        ],
+        "type": "object"
+      },
+      "AccountSummary": {
+        "properties": {
+          "asOf": {
+            "description": "Database statement time, not an ingestion or price freshness guarantee.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "assets": {
+            "description": "Ordered by assetId. Includes all recorded assets, even with zero holdings.",
+            "items": {
+              "$ref": "#/components/schemas/SummaryAsset"
+            },
+            "type": "array"
+          },
+          "availableCreditUsd": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "calculationMode": {
+            "description": "Always demo. The 85% LTV and 90% liquidation threshold do not grant authorization.",
+            "type": "string"
+          },
+          "complete": {
+            "description": "False when a nonzero holding or liability has no price. Affected totals are null.",
+            "type": "boolean"
+          },
+          "creditLimitUsd": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "missingPriceAssetIds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "netEquityUsd": {
+            "description": "Gross booked portfolio value, before debt, as requested for the demo.\nExcludes pending deposits, principal liabilities and provider shortfalls.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "outstandingDebtUsd": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "userId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "userId",
+          "asOf",
+          "calculationMode",
+          "complete",
+          "missingPriceAssetIds",
+          "netEquityUsd",
+          "creditLimitUsd",
+          "outstandingDebtUsd",
+          "availableCreditUsd",
+          "assets"
+        ],
+        "type": "object"
+      },
+      "ActivityChange": {
+        "properties": {
+          "assetId": {
+            "type": "string"
+          },
+          "bucket": {
+            "type": "string"
+          },
+          "creditQuantity": {
+            "type": "string"
+          },
+          "debitQuantity": {
+            "description": "Accounting posting totals in atomic units, not cash-flow labels.",
+            "type": "string"
+          },
+          "decimals": {
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "quantityChange": {
+            "description": "Signed change in token units: debits minus credits, except liabilities use credits minus debits.",
+            "type": "string"
+          },
+          "symbol": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "assetId",
+          "symbol",
+          "decimals",
+          "bucket",
+          "debitQuantity",
+          "creditQuantity",
+          "quantityChange"
+        ],
+        "type": "object"
+      },
+      "ActivityItem": {
+        "properties": {
+          "changes": {
+            "description": "All user-owned bucket changes. System and other users' postings are omitted.",
+            "items": {
+              "$ref": "#/components/schemas/ActivityChange"
+            },
+            "type": "array"
+          },
+          "commandKind": {
+            "type": "string"
+          },
+          "effectiveAt": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "reversesTransactionId": {
+            "format": "uuid",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "description": "Deposit phase at this event, otherwise \"recorded\". Not a current settlement status.",
+            "type": "string"
+          },
+          "timestamp": {
+            "description": "Journal recording time in Unix milliseconds; determines page order.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "type": {
+            "description": "Display category; commandKind retains the exact Ledger event.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "commandKind",
+          "status",
+          "timestamp",
+          "effectiveAt",
+          "reversesTransactionId",
+          "changes"
+        ],
+        "type": "object"
+      },
+      "ActivityPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ActivityItem"
+            },
+            "type": "array"
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "type": "object"
+      },
+      "AssetBalances": {
+        "properties": {
+          "assetId": {
+            "type": "string"
+          },
+          "buckets": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/BucketTotals"
+            },
+            "description": "Recorded Ledger buckets: pending, available, reserved, order_reserved,\nwithdrawal_reserved, hyperliquid_margin, principal_liability,\nliquidation_proceeds, customer_surplus, provider_shortfall.",
+            "propertyNames": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "caip19": {
+            "description": "CAIP-19 token identity from the locked asset registry.",
+            "type": "string"
+          },
+          "chain": {
+            "description": "CAIP-2 chain identity from the locked asset registry.",
+            "type": "string"
+          },
+          "collateral": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CollateralConfig",
+                "description": "Streamed Risk configuration, not user eligibility; null when not configured."
+              }
+            ]
+          },
+          "decimals": {
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "symbol": {
+            "type": "string"
+          },
+          "tokenAddress": {
+            "description": "ERC-20 contract or SPL mint address; null for native assets.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "assetId",
+          "symbol",
+          "chain",
+          "caip19",
+          "tokenAddress",
+          "decimals",
+          "collateral",
+          "buckets"
+        ],
+        "type": "object"
+      },
+      "AssetCatalog": {
+        "properties": {
+          "assets": {
+            "description": "Complete catalog in registry order; CAIP-19 identifies each representation.",
+            "items": {
+              "$ref": "#/components/schemas/CatalogAsset"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "assets"
+        ],
+        "type": "object"
+      },
+      "BetaAccess": {
+        "properties": {
+          "betaAccess": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "betaAccess"
+        ],
+        "type": "object"
+      },
+      "BucketTotals": {
+        "properties": {
+          "creditQuantity": {
+            "description": "Cumulative credit postings in atomic units, as an exact unsigned integer string.",
+            "type": "string"
+          },
+          "debitQuantity": {
+            "description": "Cumulative debit postings in atomic units, as an exact unsigned integer string.",
+            "type": "string"
+          },
+          "updatedAt": {
+            "description": "Last stored balance update in Unix milliseconds, not external ingestion freshness.",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "debitQuantity",
+          "creditQuantity",
+          "updatedAt"
+        ],
+        "type": "object"
+      },
+      "CatalogAsset": {
+        "properties": {
+          "assetId": {
+            "description": "Ledger accounting code; null when this asset is supported only by Risk.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "caip19": {
+            "description": "Canonical or provisional CAIP-19 asset identity.",
+            "type": "string"
+          },
+          "chain": {
+            "description": "CAIP-2 chain identity.",
+            "type": "string"
+          },
+          "collateral": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CollateralConfig",
+                "description": "Streamed Risk settings; null when no collateral configuration exists."
+              }
+            ]
+          },
+          "decimals": {
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "economicAsset": {
+            "description": "Grouping across chains; does not make balances interchangeable.",
+            "examples": [
+              "ETH",
+              "BTC",
+              "SOL",
+              "USDC"
+            ],
+            "type": "string"
+          },
+          "symbol": {
+            "type": "string"
+          },
+          "tokenAddress": {
+            "description": "ERC-20 contract or SPL mint; null for native and HIP-1 assets.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "assetId",
+          "symbol",
+          "economicAsset",
+          "chain",
+          "caip19",
+          "tokenAddress",
+          "decimals",
+          "collateral"
+        ],
+        "type": "object"
+      },
+      "CatalogMarginTier": {
+        "properties": {
+          "lowerBoundNotional": {
+            "description": "Inclusive notional bound, converted exactly from the registry's 1e8 fixed point.",
+            "type": "string"
+          },
+          "maxLeverage": {
+            "description": "Configured tier leverage, not the leverage available to a particular user.",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "lowerBoundNotional",
+          "maxLeverage"
+        ],
+        "type": "object"
+      },
+      "CatalogMarket": {
+        "properties": {
+          "marginTiers": {
+            "items": {
+              "$ref": "#/components/schemas/CatalogMarginTier"
+            },
+            "type": "array"
+          },
+          "marketId": {
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "price": {
+            "$ref": "#/components/schemas/CatalogPrice"
+          },
+          "symbol": {
+            "type": "string"
+          },
+          "venue": {
+            "$ref": "#/components/schemas/CatalogVenue"
+          }
+        },
+        "required": [
+          "marketId",
+          "name",
+          "symbol",
+          "venue",
+          "price",
+          "marginTiers"
+        ],
+        "type": "object"
+      },
+      "CatalogPrice": {
+        "properties": {
+          "externalId": {
+            "description": "Configured source-specific feed identifier; no live price is included.",
+            "type": "string"
+          },
+          "source": {
+            "examples": [
+              "ethereum",
+              "hyperliquid"
+            ],
+            "type": "string"
+          },
+          "symbol": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "symbol",
+          "externalId"
+        ],
+        "type": "object"
+      },
+      "CatalogVenue": {
+        "properties": {
+          "kind": {
+            "examples": [
+              "ethereum",
+              "hyper_core",
+              "hyperliquid_perps"
+            ],
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "name"
+        ],
+        "type": "object"
+      },
+      "ChallengeRequest": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/WalletChallengeRequest"
+          },
+          {
+            "$ref": "#/components/schemas/EmptyRequest"
+          }
+        ]
+      },
+      "CollateralConfig": {
+        "description": "Asset-level configuration, not user eligibility or a borrowing limit.",
+        "properties": {
+          "enabled": {
+            "description": "Whether the streamed Risk model enables standalone collateral for this asset.",
+            "type": "boolean"
+          },
+          "factor": {
+            "description": "Exact valuation multiplier, e.g. \"0.950000\"; not a credit LTV.",
+            "type": "string"
+          },
+          "price": {
+            "$ref": "#/components/schemas/CatalogPrice"
+          },
+          "venue": {
+            "$ref": "#/components/schemas/CatalogVenue"
+          }
+        },
+        "required": [
+          "enabled",
+          "factor",
+          "venue",
+          "price"
+        ],
+        "type": "object"
+      },
+      "CoreUser": {
+        "properties": {
+          "accounts": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "propertyNames": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "beta_access": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "external_id": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "metadata": {},
+          "status": {
+            "$ref": "#/components/schemas/UserStatus"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "external_id",
+          "status",
+          "beta_access",
+          "accounts",
+          "metadata",
+          "created_at",
+          "updated_at"
+        ],
+        "type": "object"
+      },
+      "CreateCoreUser": {
+        "properties": {
+          "external_id": {
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "external_id"
+        ],
+        "type": "object"
+      },
+      "CreatedUser": {
+        "properties": {
+          "created": {
+            "type": "boolean"
+          },
+          "user": {
+            "$ref": "#/components/schemas/CoreUser"
+          }
+        },
+        "required": [
+          "user",
+          "created"
+        ],
+        "type": "object"
+      },
+      "CurrentUserProfile": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/UserProfile"
+          },
+          {
+            "properties": {
+              "evmAddress": {
+                "description": "Provisioned EVM wallet address in lowercase hex; null when no wallet is provisioned.",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "solanaAddress": {
+                "description": "Provisioned Solana wallet public key in base58; null when no wallet is provisioned.",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "solanaAddress",
+              "evmAddress"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "EmptyRequest": {
+        "additionalProperties": false,
+        "type": "object"
+      },
+      "ErrorResponse": {
+        "properties": {
+          "error": {
+            "properties": {
+              "code": {
+                "description": "Stable SCREAMING_SNAKE_CASE error code",
+                "type": "string"
+              },
+              "details": {
+                "items": {
+                  "properties": {
+                    "field": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "field",
+                    "message"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "message": {
+                "type": "string"
+              },
+              "sanitized": {
+                "const": true,
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "code",
+              "message",
+              "sanitized"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "type": "object"
+      },
+      "EvmChallengeResponse": {
+        "properties": {
+          "challengeToken": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "signInInput": {
+            "$ref": "#/components/schemas/EvmSignInInput"
+          }
+        },
+        "required": [
+          "message",
+          "signInInput",
+          "challengeToken"
+        ],
+        "type": "object"
+      },
+      "EvmSignInInput": {
+        "properties": {
+          "address": {
+            "type": "string"
+          },
+          "chainId": {
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "domain": {
+            "type": "string"
+          },
+          "expirationTime": {
+            "type": "string"
+          },
+          "issuedAt": {
+            "type": "string"
+          },
+          "nonce": {
+            "type": "string"
+          },
+          "statement": {
+            "type": "string"
+          },
+          "uri": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "domain",
+          "address",
+          "statement",
+          "uri",
+          "version",
+          "chainId",
+          "nonce",
+          "issuedAt",
+          "expirationTime"
+        ],
+        "type": "object"
+      },
+      "HealthHistory": {
+        "properties": {
+          "inputFreshness": {
+            "type": "string"
+          },
+          "metric": {
+            "type": "string"
+          },
+          "samples": {
+            "description": "Newest first, with sample ID breaking capture-time ties.",
+            "items": {
+              "$ref": "#/components/schemas/HealthSample"
+            },
+            "type": "array"
+          },
+          "truncated": {
+            "description": "Narrow the requested range or increase limit when true. No silent truncation.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "metric",
+          "inputFreshness",
+          "samples",
+          "truncated"
+        ],
+        "type": "object"
+      },
+      "HealthSample": {
+        "properties": {
+          "classification": {
+            "examples": [
+              "healthy",
+              "watch",
+              "liquidatable",
+              "data_incomplete"
+            ],
+            "type": "string"
+          },
+          "health": {
+            "description": "Exact finite ratio as a decimal string; null for incomplete or unbounded health.",
+            "examples": [
+              "1.200000"
+            ],
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sampledAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sampledAt",
+          "classification"
+        ],
+        "type": "object"
+      },
+      "IdentityResource": {
+        "properties": {
+          "issuer": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "userId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "userId",
+          "issuer",
+          "subject"
+        ],
+        "type": "object"
+      },
+      "LatestHealth": {
+        "properties": {
+          "inputFreshness": {
+            "description": "Always unknown: the current stream carries sequences, not source observation times.",
+            "type": "string"
+          },
+          "latest": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/HealthSample",
+                "description": "Missing when this user has no captured history. No fabricated healthy default."
+              }
+            ]
+          },
+          "metric": {
+            "description": "Always pooled_margin_health: (pooled collateral - liabilities) / maintenance.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "metric",
+          "inputFreshness"
+        ],
+        "type": "object"
+      },
+      "LinkIdentityRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "issuer": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "issuer",
+          "subject"
+        ],
+        "type": "object"
+      },
+      "LinkIdentityResponse": {
+        "description": "The identity mapping as a plain resource; `201` versus `200` tells the\noperator whether this call created the link.",
+        "properties": {
+          "issuer": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "issuer",
+          "subject"
+        ],
+        "type": "object"
+      },
+      "LoginChallenge": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/LoginStarted"
+          },
+          {
+            "$ref": "#/components/schemas/SolanaChallengeResponse"
+          },
+          {
+            "$ref": "#/components/schemas/EvmChallengeResponse"
+          }
+        ]
+      },
+      "LoginMethod": {
+        "properties": {
+          "issuer": {
+            "type": "string"
+          },
+          "provider": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "subject": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "provider",
+          "issuer",
+          "subject"
+        ],
+        "type": "object"
+      },
+      "LoginStarted": {
+        "properties": {
+          "challengeToken": {
+            "type": "string"
+          },
+          "clientId": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "description": "Challenge expiry in Unix milliseconds.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "nonce": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "clientId",
+          "nonce",
+          "challengeToken",
+          "expiresAt"
+        ],
+        "type": "object"
+      },
+      "MarketCatalog": {
+        "properties": {
+          "markets": {
+            "description": "Complete configured perpetual-market list in registry order.",
+            "items": {
+              "$ref": "#/components/schemas/CatalogMarket"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "markets"
+        ],
+        "type": "object"
+      },
+      "Page_LoginMethod": {
+        "properties": {
+          "hasMore": {
+            "type": "boolean"
+          },
+          "items": {
+            "items": {
+              "properties": {
+                "issuer": {
+                  "type": "string"
+                },
+                "provider": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "subject": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "provider",
+                "issuer",
+                "subject"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor",
+          "hasMore"
+        ],
+        "type": "object"
+      },
+      "Page_String": {
+        "properties": {
+          "hasMore": {
+            "type": "boolean"
+          },
+          "items": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor",
+          "hasMore"
+        ],
+        "type": "object"
+      },
+      "Proof": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "challengeToken": {
+                "type": "string"
+              },
+              "idToken": {
+                "type": "string"
+              },
+              "method": {
+                "enum": [
+                  "oidc"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "idToken",
+              "challengeToken",
+              "method"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "challengeToken": {
+                "type": "string"
+              },
+              "method": {
+                "enum": [
+                  "evm"
+                ],
+                "type": "string"
+              },
+              "signature": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "challengeToken",
+              "signature",
+              "method"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "challengeToken": {
+                "type": "string"
+              },
+              "method": {
+                "enum": [
+                  "solana"
+                ],
+                "type": "string"
+              },
+              "signature": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "challengeToken",
+              "signature",
+              "method"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "Readiness": {
+        "properties": {
+          "ready": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ready"
+        ],
+        "type": "object"
+      },
+      "RedeemInvite": {
+        "additionalProperties": false,
+        "properties": {
+          "inviteCode": {
+            "description": "Shared invite code; maximum 128 UTF-8 bytes, no surrounding whitespace or control characters.",
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "inviteCode"
+        ],
+        "type": "object"
+      },
+      "RefreshRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "refreshToken": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "RevokedSession": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "revoked": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "revoked"
+        ],
+        "type": "object"
+      },
+      "SessionResource": {
+        "properties": {
+          "expiresAt": {
+            "description": "Access JWT expiry in Unix milliseconds.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "refreshExpiresAt": {
+            "description": "Fixed session expiry in Unix milliseconds.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserProfile"
+          }
+        },
+        "required": [
+          "id",
+          "user",
+          "expiresAt",
+          "refreshExpiresAt"
+        ],
+        "type": "object"
+      },
+      "SolanaChallengeResponse": {
+        "properties": {
+          "challengeToken": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "signInInput": {
+            "$ref": "#/components/schemas/SolanaSignInInput"
+          }
+        },
+        "required": [
+          "message",
+          "signInInput",
+          "challengeToken"
+        ],
+        "type": "object"
+      },
+      "SolanaSignInInput": {
+        "properties": {
+          "address": {
+            "type": "string"
+          },
+          "domain": {
+            "type": "string"
+          },
+          "expirationTime": {
+            "type": "string"
+          },
+          "issuedAt": {
+            "type": "string"
+          },
+          "nonce": {
+            "type": "string"
+          },
+          "statement": {
+            "type": "string"
+          },
+          "uri": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "domain",
+          "address",
+          "statement",
+          "uri",
+          "version",
+          "nonce",
+          "issuedAt",
+          "expirationTime"
+        ],
+        "type": "object"
+      },
+      "Source": {
+        "enum": [
+          "ethereum",
+          "hyperliquid"
+        ],
+        "type": "string"
+      },
+      "StatusRequest": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/UserStatus"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "type": "object"
+      },
+      "SummaryAsset": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AssetBalances"
+          },
+          {
+            "properties": {
+              "creditContributionUsd": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "liquidationThreshold": {
+                "type": "string"
+              },
+              "ltv": {
+                "description": "Demo rate for every asset, regardless of collateral configuration.",
+                "type": "string"
+              },
+              "outstandingDebtQuantity": {
+                "type": "string"
+              },
+              "outstandingDebtUsd": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "priceAsOf": {
+                "description": "Aggregate computation time; null for a registry fixed price or missing aggregate.",
+                "format": "int64",
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "priceUsd": {
+                "description": "Registry fixed USD price or latest aggregate without a freshness cutoff; null if missing.",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "quantity": {
+                "description": "Net included holdings in token units. Bucket totals remain atomic integer strings.",
+                "type": "string"
+              },
+              "valueUsd": {
+                "description": "USD values are decimal strings with eight fractional digits, truncated toward zero.",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "quantity",
+              "outstandingDebtQuantity",
+              "priceUsd",
+              "priceAsOf",
+              "valueUsd",
+              "ltv",
+              "liquidationThreshold",
+              "creditContributionUsd",
+              "outstandingDebtUsd"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "UserPage": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/CoreUser"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "data",
+          "next_cursor"
+        ],
+        "type": "object"
+      },
+      "UserProfile": {
+        "properties": {
+          "betaAccess": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "description": "Unix milliseconds.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/UserStatus"
+          },
+          "updatedAt": {
+            "description": "Unix milliseconds.",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "betaAccess",
+          "createdAt",
+          "updatedAt"
+        ],
+        "type": "object"
+      },
+      "UserStatus": {
+        "enum": [
+          "pending",
+          "active",
+          "restricted",
+          "closed"
+        ],
+        "type": "string"
+      },
+      "WalletChallengeRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "address": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "address"
+        ],
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "AccessCookie": {
+        "description": "Core-issued access JWT. HttpOnly; Secure; SameSite=Strict; Path=/api. Do not combine with bearer authentication.",
+        "in": "cookie",
+        "name": "__Secure-tackt-access",
+        "type": "apiKey"
+      },
+      "OperatorBearer": {
+        "description": "Shared CORE_API_OPERATOR_TOKEN, separate from user JWTs.",
+        "scheme": "bearer",
+        "type": "http"
+      },
+      "RefreshCookie": {
+        "description": "Rotating opaque refresh credential; an access JWT is not required.",
+        "in": "cookie",
+        "name": "__Secure-tackt-refresh",
+        "type": "apiKey"
+      },
+      "UserBearer": {
+        "bearerFormat": "JWT",
+        "description": "Core-issued JWT; requires matching X-User-Id.",
+        "scheme": "bearer",
+        "type": "http"
+      },
+      "UserId": {
+        "description": "UUID matching the verified JWT subject; required only with UserBearer.",
+        "in": "header",
+        "name": "X-User-Id",
+        "type": "apiKey"
+      }
+    }
+  },
+  "info": {
+    "description": "Core-issued access JWTs last up to 15 minutes. Refresh sessions last 30 days. Logout blocks refresh immediately; issued access JWTs remain valid until expiry. User routes use camelCase and Unix-millisecond timestamps; legacy operator routes retain snake_case and RFC3339 timestamps.",
+    "title": "Tackt Core API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/assets": {
+      "get": {
+        "operationId": "asset_catalog",
+        "parameters": [
+          {
+            "description": "Echoed when valid, otherwise generated by Core.",
+            "in": "header",
+            "name": "X-Request-ID",
+            "required": false,
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetCatalog"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Sanitized error. Invalid input: 400; invalid credentials: 401; forbidden: 403; missing resource/provider: 404; identity or idempotency conflict: 409; oversized body: 413; media type: 415; internal failure: 500; unavailable dependency or beta redemption: 503.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AccessCookie": []
+          },
+          {
+            "UserBearer": [],
+            "UserId": []
+          }
+        ],
+        "summary": "Full configured catalog, including assets without Ledger support or current user holdings.",
+        "tags": [
+          "Catalog"
+        ]
+      }
+    },
+    "/api/v1/auth/providers": {
+      "get": {
+        "operationId": "providers",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "format": "int32",
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Echoed when valid, otherwise generated by Core.",
+            "in": "header",
+            "name": "X-Request-ID",
+            "required": false,
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_String"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Sanitized error. Invalid input: 400; invalid credentials: 401; forbidden: 403; missing resource/provider: 404; identity or idempotency conflict: 409; oversized body: 413; media type: 415; internal failure: 500; unavailable dependency or beta redemption: 503.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List configured OIDC providers and the built-in solana and evm providers.",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/v1/auth/providers/{provider}/challenges": {
+      "post": {
+        "operationId": "login",
+        "parameters": [
+          {
+            "description": "solana, evm, or a configured OIDC provider",
+            "in": "path",
+            "name": "provider",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Echoed when valid, otherwise generated by Core.",
+            "in": "header",
+            "name": "X-Request-ID",
+            "required": false,
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Required for requests carrying cookies; must match a configured trusted origin. Any supplied foreign origin is rejected.",
+            "in": "header",
+            "name": "Origin",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChallengeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginChallenge"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Sanitized error. Invalid input: 400; invalid credentials: 401; forbidden: 403; missing resource/provider: 404; identity or idempotency conflict: 409; oversized body: 413; media type: 415; internal failure: 500; unavailable dependency or beta redemption: 503.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Start login: send `{}` for OIDC or `{address}` for a wallet. Complete the returned challenge through POST /api/v1/auth/sessions.",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/v1/auth/session-tokens": {
+      "post": {
+        "operationId": "refresh",
+        "parameters": [
+          {
+            "description": "Echoed when valid, otherwise generated by Core.",
+            "in": "header",
+            "name": "X-Request-ID",
+            "required": false,
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Required for requests carrying cookies; must match a configured trusted origin. Any supplied foreign origin is rejected.",
+            "in": "header",
+            "name": "Origin",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResource"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "Set-Cookie": {
+                "description": "Two separate Set-Cookie headers set or clear __Secure-tackt-access and __Secure-tackt-refresh. HttpOnly; Secure; SameSite=Strict; Path=/api. Credentials never appear in response JSON.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Sanitized error. Invalid input: 400; invalid credentials: 401; forbidden: 403; missing resource/provider: 404; identity or idempotency conflict: 409; oversized body: 413; media type: 415; internal failure: 500; unavailable dependency or beta redemption: 503.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "RefreshCookie": []
+          },
+          {}
+        ],
+        "summary": "Rotate a refresh credential without extending the session deadline. Send `{}` with the refresh cookie, or `{refreshToken}` without it; supplying both is rejected.",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/v1/auth/sessions": {
+      "post": {
+        "operationId": "create_session",
+        "parameters": [
+          {
+            "description": "Echoed when valid, otherwise generated by Core.",
+            "in": "header",
+            "name": "X-Request-ID",
+            "required": false,
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Required for requests carrying cookies; must match a configured trusted origin. Any supplied foreign origin is rejected.",
+            "in": "header",
+            "name": "Origin",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Proof"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResource"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "Set-Cookie": {
+                "description": "Two separate Set-Cookie headers set or clear __Secure-tackt-access and __Secure-tackt-refresh. HttpOnly; Secure; SameSite=Strict; Path=/api. Credentials never appear in response JSON.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Sanitized error. Invalid input: 400; invalid credentials: 401; forbidden: 403; missing resource/provider: 404; identity or idempotency conflict: 409; oversized body: 413; media type: 415; internal failure: 500; unavailable dependency or beta redemption: 503.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Verify an OIDC ID token or wallet signature and create a session. New users are created only when signup is enabled; credentials are returned in cookies.",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/v1/markets": {
+      "get": {
+        "operationId": "market_catalog",
+        "parameters": [
+          {
+            "description": "Echoed when valid, otherwise generated by Core.",
+            "in": "header",
+            "name": "X-Request-ID",
+            "required": false,
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketCatalog"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Sanitized error. Invalid input: 400; invalid credentials: 401; forbidden: 403; missing resource/provider: 404; identity or idempotency conflict: 409; oversized body: 413; media type: 415; internal failure: 500; unavailable dependency or beta redemption: 503.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AccessCookie": []
+          },
+          {
+            "UserBearer": [],
+            "UserId": []
+          }
+        ],
+        "summary": "Configured perpetual markets and leverage tiers, not live prices or venue health.",
+        "tags": [
+          "Catalog"
+        ]
+      }
+    },
+    "/api/v1/users/me": {
+      "get": {
+        "operationId": "current_user",
+        "parameters": [
+          {
+            "description": "Echoed when valid, otherwise generated by Core.",
+            "in": "header",
+            "name": "X-Request-ID",
+            "required": false,
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurrentUserProfile"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Sanitized error. Invalid input: 400; invalid credentials: 401; forbidden: 403; missing resource/provider: 404; identity or idempotency conflict: 409; oversized body: 413; media type: 415; internal failure: 500; unavailable dependency or beta redemption: 503.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AccessCookie": []
+          },
+          {
+            "UserBearer": [],
+            "UserId": []
+          }
+        ],
+        "summary": "Return the authenticated user profile and provisioned wallet addresses. Closed users are rejected.",
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/api/v1/users/me/account-summary": {
+      "get": {
+        "operationId": "summary",
+        "parameters": [
+          {
+            "description": "Echoed when valid, otherwise generated by Core.",
+            "in": "header",
+            "name": "X-Request-ID",
+            "required": false,
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountSummary"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Sanitized error. Invalid input: 400; invalid credentials: 401; forbidden: 403; missing resource/provider: 404; identity or idempotency conflict: 409; oversized body: 413; media type: 415; internal failure: 500; unavailable dependency or beta redemption: 503.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AccessCookie": []
+          },
+          {
+            "UserBearer": [],
+            "UserId": []
+          }
+        ],
+        "tags": [
+          "Account"
+        ]
+      }
+    },
+    "/api/v1/users/me/activity": {
+      "get": {
+        "operationId": "activity",
+        "parameters": [
+          {
+            "description": "Transactions per page, 1–100; defaults to 20.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "format": "int32",
+              "minimum": 0,
+              "type": [
+                "integer",
+                "null"
+              ]
+            }
+          },
+          {
+            "description": "Opaque nextCursor from the preceding response.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "description": "Echoed when valid, otherwise generated by Core.",
+            "in": "header",
+            "name": "X-Request-ID",
+            "required": false,
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivityPage"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Sanitized error. Invalid input: 400; invalid credentials: 401; forbidden: 403; missing resource/provider: 404; identity or idempotency conflict: 409; oversized body: 413; media type: 415; internal failure: 500; unavailable dependency or beta redemption: 503.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AccessCookie": []
+          },
+          {
+            "UserBearer": [],
+            "UserId": []
+          }
+        ],
+        "tags": [
+          "Account"
+        ]
+      }
+    },
+    "/api/v1/users/me/beta-access": {
+      "post": {
+        "operationId": "redeem",
+        "parameters": [
+          {
+            "description": "Echoed when valid, otherwise generated by Core.",
+            "in": "header",
+            "name": "X-Request-ID",
+            "required": false,
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Required for requests carrying cookies; must match a configured trusted origin. Any supplied foreign origin is rejected.",
+            "in": "header",
+            "name": "Origin",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RedeemInvite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BetaAccess"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Sanitized error. Invalid input: 400; invalid credentials: 401; forbidden: 403; missing resource/provider: 404; identity or idempotency conflict: 409; oversized body: 413; media type: 415; internal failure: 500; unavailable dependency or beta redemption: 503.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AccessCookie": []
+          },
+          {
+            "UserBearer": [],
+            "UserId": []
+          }
+        ],
+        "summary": "Redeem CORE_API_BETA_INVITE_CODE. Closed users are rejected before invite validation. For open users, invalid codes return 403 and an unconfigured code returns 503. Repeated valid redemption succeeds.",
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/api/v1/users/me/identities": {
+      "get": {
+        "operationId": "methods",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "format": "int32",
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Echoed when valid, otherwise generated by Core.",
+            "in": "header",
+            "name": "X-Request-ID",
+            "required": false,
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_LoginMethod"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Sanitized error. Invalid input: 400; invalid credentials: 401; forbidden: 403; missing resource/provider: 404; identity or idempotency conflict: 409; oversized body: 413; media type: 415; internal failure: 500; unavailable dependency or beta redemption: 503.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AccessCookie": []
+          },
+          {
+            "UserBearer": [],
+            "UserId": []
+          }
+        ],
+        "summary": "List the authenticated user’s linked identities. Closed users are rejected.",
+        "tags": [
+          "Identities"
+        ]
+      },
+      "post": {
+        "operationId": "create_identity",
+        "parameters": [
+          {
+            "description": "Echoed when valid, otherwise generated by Core.",
+            "in": "header",
+            "name": "X-Request-ID",
+            "required": false,
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Required for requests carrying cookies; must match a configured trusted origin. Any supplied foreign origin is rejected.",
+            "in": "header",
+            "name": "Origin",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Proof"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdentityResource"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdentityResource"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Sanitized error. Invalid input: 400; invalid credentials: 401; forbidden: 403; missing resource/provider: 404; identity or idempotency conflict: 409; oversized body: 413; media type: 415; internal failure: 500; unavailable dependency or beta redemption: 503.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AccessCookie": []
+          },
+          {
+            "UserBearer": [],
+            "UserId": []
+          }
+        ],
+        "summary": "Complete a linking challenge using the same authenticated user and session that started it. Returns 201 for a new identity or 200 for an existing link.",
+        "tags": [
+          "Identities"
+        ]
+      }
+    },
+    "/api/v1/users/me/identities/{provider}/challenges": {
+      "post": {
+        "operationId": "link",
+        "parameters": [
+          {
+            "description": "solana, evm, or a configured OIDC provider",
+            "in": "path",
+            "name": "provider",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Echoed when valid, otherwise generated by Core.",
+            "in": "header",
+            "name": "X-Request-ID",
+            "required": false,
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Required for requests carrying cookies; must match a configured trusted origin. Any supplied foreign origin is rejected.",
+            "in": "header",
+            "name": "Origin",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChallengeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginChallenge"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Sanitized error. Invalid input: 400; invalid credentials: 401; forbidden: 403; missing resource/provider: 404; identity or idempotency conflict: 409; oversized body: 413; media type: 415; internal failure: 500; unavailable dependency or beta redemption: 503.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AccessCookie": []
+          },
+          {
+            "UserBearer": [],
+            "UserId": []
+          }
+        ],
+        "summary": "Start an identity-linking challenge bound to the current user and session. Uses the same provider-specific input as a login challenge.",
+        "tags": [
+          "Identities"
+        ]
+      }
+    },
+    "/api/v1/users/me/risk-health": {
+      "get": {
+        "operationId": "latest",
+        "parameters": [
+          {
+            "description": "Echoed when valid, otherwise generated by Core.",
+            "in": "header",
+            "name": "X-Request-ID",
+            "required": false,
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LatestHealth"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Sanitized error. Invalid input: 400; invalid credentials: 401; forbidden: 403; missing resource/provider: 404; identity or idempotency conflict: 409; oversized body: 413; media type: 415; internal failure: 500; unavailable dependency or beta redemption: 503.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AccessCookie": []
+          },
+          {
+            "UserBearer": [],
+            "UserId": []
+          }
+        ],
+        "tags": [
+          "Risk history"
+        ]
+      }
+    },
+    "/api/v1/users/me/risk-health/history": {
+      "get": {
+        "operationId": "history",
+        "parameters": [
+          {
+            "description": "Inclusive Unix milliseconds. Defaults to 24 hours before toMs.",
+            "in": "query",
+            "name": "fromMs",
+            "required": false,
+            "schema": {
+              "format": "int64",
+              "type": [
+                "integer",
+                "null"
+              ]
+            }
+          },
+          {
+            "description": "Exclusive Unix milliseconds. Defaults to now; range must not exceed 31 days.",
+            "in": "query",
+            "name": "toMs",
+            "required": false,
+            "schema": {
+              "format": "int64",
+              "type": [
+                "integer",
+                "null"
+              ]
+            }
+          },
+          {
+            "description": "Maximum samples, 1–2000; defaults to 1440.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "format": "int32",
+              "minimum": 0,
+              "type": [
+                "integer",
+                "null"
+              ]
+            }
+          },
+          {
+            "description": "Echoed when valid, otherwise generated by Core.",
+            "in": "header",
+            "name": "X-Request-ID",
+            "required": false,
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthHistory"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Sanitized error. Invalid input: 400; invalid credentials: 401; forbidden: 403; missing resource/provider: 404; identity or idempotency conflict: 409; oversized body: 413; media type: 415; internal failure: 500; unavailable dependency or beta redemption: 503.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AccessCookie": []
+          },
+          {
+            "UserBearer": [],
+            "UserId": []
+          }
+        ],
+        "tags": [
+          "Risk history"
+        ]
+      }
+    },
+    "/api/v1/users/me/sessions/current": {
+      "delete": {
+        "operationId": "logout",
+        "parameters": [
+          {
+            "description": "Echoed when valid, otherwise generated by Core.",
+            "in": "header",
+            "name": "X-Request-ID",
+            "required": false,
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Required for requests carrying cookies; must match a configured trusted origin. Any supplied foreign origin is rejected.",
+            "in": "header",
+            "name": "Origin",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevokedSession"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "Set-Cookie": {
+                "description": "Two separate Set-Cookie headers set or clear __Secure-tackt-access and __Secure-tackt-refresh. HttpOnly; Secure; SameSite=Strict; Path=/api. Credentials never appear in response JSON.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Sanitized error. Invalid input: 400; invalid credentials: 401; forbidden: 403; missing resource/provider: 404; identity or idempotency conflict: 409; oversized body: 413; media type: 415; internal failure: 500; unavailable dependency or beta redemption: 503.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AccessCookie": []
+          },
+          {
+            "UserBearer": [],
+            "UserId": []
+          }
+        ],
+        "summary": "Revoke the current refresh session and clear both cookies. Requires a valid access JWT; issued access JWTs remain valid until expiry.",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "health",
+        "parameters": [
+          {
+            "description": "Echoed when valid, otherwise generated by Core.",
+            "in": "header",
+            "name": "X-Request-ID",
+            "required": false,
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Alive; empty body",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Sanitized error. Invalid input: 400; invalid credentials: 401; forbidden: 403; missing resource/provider: 404; identity or idempotency conflict: 409; oversized body: 413; media type: 415; internal failure: 500; unavailable dependency or beta redemption: 503.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Operations"
+        ]
+      }
+    },
+    "/metrics": {
+      "get": {
+        "operationId": "metrics",
+        "parameters": [
+          {
+            "description": "Echoed when valid, otherwise generated by Core.",
+            "in": "header",
+            "name": "X-Request-ID",
+            "required": false,
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/plain; version=0.0.4": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Sanitized error. Invalid input: 400; invalid credentials: 401; forbidden: 403; missing resource/provider: 404; identity or idempotency conflict: 409; oversized body: 413; media type: 415; internal failure: 500; unavailable dependency or beta redemption: 503.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Operations"
+        ]
+      }
+    },
+    "/ready": {
+      "get": {
+        "operationId": "ready",
+        "parameters": [
+          {
+            "description": "Echoed when valid, otherwise generated by Core.",
+            "in": "header",
+            "name": "X-Request-ID",
+            "required": false,
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Readiness"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Sanitized error. Invalid input: 400; invalid credentials: 401; forbidden: 403; missing resource/provider: 404; identity or idempotency conflict: 409; oversized body: 413; media type: 415; internal failure: 500; unavailable dependency or beta redemption: 503.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Operations"
+        ]
+      }
+    },
+    "/v1/users": {
+      "get": {
+        "operationId": "list_users",
+        "parameters": [
+          {
+            "description": "Clamped to 1–200.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "format": "int32",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Echoed when valid, otherwise generated by Core.",
+            "in": "header",
+            "name": "X-Request-ID",
+            "required": false,
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Optional audit attribution; invalid or missing values become operator.",
+            "in": "header",
+            "name": "X-Operator-Id",
+            "required": false,
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserPage"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Sanitized error. Invalid input: 400; invalid credentials: 401; forbidden: 403; missing resource/provider: 404; identity or idempotency conflict: 409; oversized body: 413; media type: 415; internal failure: 500; unavailable dependency or beta redemption: 503.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OperatorBearer": []
+          }
+        ],
+        "tags": [
+          "Operators"
+        ]
+      },
+      "post": {
+        "operationId": "create_user",
+        "parameters": [
+          {
+            "description": "Echoed when valid, otherwise generated by Core.",
+            "in": "header",
+            "name": "X-Request-ID",
+            "required": false,
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Optional audit attribution; invalid or missing values become operator.",
+            "in": "header",
+            "name": "X-Operator-Id",
+            "required": false,
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCoreUser"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedUser"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedUser"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Sanitized error. Invalid input: 400; invalid credentials: 401; forbidden: 403; missing resource/provider: 404; identity or idempotency conflict: 409; oversized body: 413; media type: 415; internal failure: 500; unavailable dependency or beta redemption: 503.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OperatorBearer": []
+          }
+        ],
+        "tags": [
+          "Operators"
+        ]
+      }
+    },
+    "/v1/users/{id}": {
+      "get": {
+        "operationId": "get_user",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Echoed when valid, otherwise generated by Core.",
+            "in": "header",
+            "name": "X-Request-ID",
+            "required": false,
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Optional audit attribution; invalid or missing values become operator.",
+            "in": "header",
+            "name": "X-Operator-Id",
+            "required": false,
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoreUser"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Sanitized error. Invalid input: 400; invalid credentials: 401; forbidden: 403; missing resource/provider: 404; identity or idempotency conflict: 409; oversized body: 413; media type: 415; internal failure: 500; unavailable dependency or beta redemption: 503.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OperatorBearer": []
+          }
+        ],
+        "tags": [
+          "Operators"
+        ]
+      }
+    },
+    "/v1/users/{id}/accounts/{source}": {
+      "put": {
+        "operationId": "replace_account",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "source",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Source"
+            }
+          },
+          {
+            "description": "Echoed when valid, otherwise generated by Core.",
+            "in": "header",
+            "name": "X-Request-ID",
+            "required": false,
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Optional audit attribution; invalid or missing values become operator.",
+            "in": "header",
+            "name": "X-Operator-Id",
+            "required": false,
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoreUser"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Sanitized error. Invalid input: 400; invalid credentials: 401; forbidden: 403; missing resource/provider: 404; identity or idempotency conflict: 409; oversized body: 413; media type: 415; internal failure: 500; unavailable dependency or beta redemption: 503.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OperatorBearer": []
+          }
+        ],
+        "tags": [
+          "Operators"
+        ]
+      }
+    },
+    "/v1/users/{id}/identities": {
+      "post": {
+        "operationId": "link_identity",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Echoed when valid, otherwise generated by Core.",
+            "in": "header",
+            "name": "X-Request-ID",
+            "required": false,
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Optional audit attribution; invalid or missing values become operator.",
+            "in": "header",
+            "name": "X-Operator-Id",
+            "required": false,
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkIdentityRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkIdentityResponse"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkIdentityResponse"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Sanitized error. Invalid input: 400; invalid credentials: 401; forbidden: 403; missing resource/provider: 404; identity or idempotency conflict: 409; oversized body: 413; media type: 415; internal failure: 500; unavailable dependency or beta redemption: 503.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OperatorBearer": []
+          }
+        ],
+        "summary": "Link a provider issuer/subject to a user using operator authority. Returns 201 for a new link or 200 for an existing link.",
+        "tags": [
+          "Operators"
+        ]
+      }
+    },
+    "/v1/users/{id}/status": {
+      "put": {
+        "operationId": "update_status",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Echoed when valid, otherwise generated by Core.",
+            "in": "header",
+            "name": "X-Request-ID",
+            "required": false,
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Optional audit attribution; invalid or missing values become operator.",
+            "in": "header",
+            "name": "X-Operator-Id",
+            "required": false,
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StatusRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoreUser"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Sanitized error. Invalid input: 400; invalid credentials: 401; forbidden: 403; missing resource/provider: 404; identity or idempotency conflict: 409; oversized body: 413; media type: 415; internal failure: 500; unavailable dependency or beta redemption: 503.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Request correlation ID",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OperatorBearer": []
+          }
+        ],
+        "tags": [
+          "Operators"
+        ]
+      }
+    }
+  }
+}

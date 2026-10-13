@@ -1,0 +1,46 @@
+[
+  {
+    "event_id": "fixture_eth_transfer_1",
+    "source": "ethereum",
+    "kind": "eth_transfer",
+    "account": {
+      "subject": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "source": "ethereum",
+      "external_id": "0x1111111111111111111111111111111111111111"
+    },
+    "asset": {"asset":"ETH"},
+    "external_asset": "ETH",
+    "quantity": "0xde0b6b3a7640000",
+    "source_timestamp": "2026-08-03T12:00:00Z",
+    "observed_at": "2026-08-03T12:00:01Z",
+    "block_number": 100,
+    "block_hash": "0xaaa",
+    "confirmations": 12,
+    "canonical": true,
+    "finalized": true,
+    "raw": {"transactionHash":"0xtx1","value":"0xde0b6b3a7640000"},
+    "provenance": {"endpoint":"fixture://ethereum","method":"eth_getBlockByNumber","source_id":"0xtx1:value"}
+  },
+  {
+    "event_id": "fixture_hl_fill_1",
+    "source": "hyperliquid",
+    "kind": "hyperliquid_fill",
+    "account": {
+      "subject": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "source": "hyperliquid",
+      "external_id": "0x2222222222222222222222222222222222222222"
+    },
+    "asset": null,
+    "external_asset": "ETH",
+    "quantity": "0.25",
+    "source_timestamp": "2026-08-03T12:00:02Z",
+    "observed_at": "2026-08-03T12:00:03Z",
+    "block_number": null,
+    "block_hash": null,
+    "confirmations": null,
+    "canonical": true,
+    "finalized": true,
+    "raw": {"tid":"1234","coin":"ETH","sz":"0.25","fee":"0.01"},
+    "provenance": {"endpoint":"fixture://hyperliquid","method":"userFills","source_id":"1234"}
+  }
+]

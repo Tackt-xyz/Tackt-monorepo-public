@@ -1,0 +1,578 @@
+{
+  "chains": [
+    {
+      "caip2": "eip155:1",
+      "name": "Ethereum mainnet",
+      "index": 2
+    },
+    {
+      "caip2": "eip155:8453",
+      "name": "Base mainnet",
+      "index": 3
+    },
+    {
+      "caip2": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+      "name": "Solana mainnet",
+      "index": 4
+    },
+    {
+      "index": 1,
+      "caip2": "hlcore:mainnet",
+      "name": "HyperCore mainnet"
+    }
+  ],
+  "assets": [
+    {
+      "symbol": "ETH",
+      "classification": {
+        "economic_asset": "ETH",
+        "instrument_type": "native",
+        "traits": []
+      },
+      "chain": "eip155:1",
+      "caip19": "eip155:1/slip44:60",
+      "token": {
+        "kind": "native"
+      },
+      "decimals": 18,
+      "ledger_asset": "ETH",
+      "collateral": null,
+      "pricing": {
+        "kind": "aggregate"
+      }
+    },
+    {
+      "symbol": "BTC",
+      "classification": {
+        "economic_asset": "BTC",
+        "instrument_type": "wrapped",
+        "traits": []
+      },
+      "chain": "eip155:1",
+      "caip19": "eip155:1/erc20:0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+      "token": {
+        "kind": "erc20",
+        "address": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599"
+      },
+      "decimals": 8,
+      "ledger_asset": "BTC",
+      "collateral": null,
+      "pricing": {
+        "kind": "aggregate"
+      }
+    },
+    {
+      "symbol": "SOL",
+      "classification": {
+        "economic_asset": "SOL",
+        "instrument_type": "wrapped",
+        "traits": []
+      },
+      "chain": "eip155:1",
+      "caip19": "eip155:1/erc20:0xd31a59c85ae9d8edefec411d448f90841571b89c",
+      "token": {
+        "kind": "erc20",
+        "address": "0xd31a59c85ae9d8edefec411d448f90841571b89c"
+      },
+      "decimals": 9,
+      "ledger_asset": "SOL",
+      "collateral": null,
+      "pricing": {
+        "kind": "aggregate"
+      }
+    },
+    {
+      "symbol": "USDC",
+      "classification": {
+        "economic_asset": "USDC",
+        "instrument_type": "stablecoin",
+        "traits": []
+      },
+      "chain": "eip155:1",
+      "caip19": "eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+      "token": {
+        "kind": "erc20",
+        "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+      },
+      "decimals": 6,
+      "ledger_asset": "USDC",
+      "collateral": {
+        "index": 2,
+        "venue": 2,
+        "price_index": 2,
+        "factor": 900000,
+        "enabled": true
+      },
+      "pricing": {
+        "kind": "fixed_usd",
+        "price_e8": 100000000
+      }
+    },
+    {
+      "symbol": "ETH_BASE",
+      "classification": {
+        "economic_asset": "ETH",
+        "instrument_type": "native",
+        "traits": []
+      },
+      "chain": "eip155:8453",
+      "caip19": "eip155:8453/slip44:60",
+      "token": {
+        "kind": "native"
+      },
+      "decimals": 18,
+      "ledger_asset": "ETH_BASE",
+      "collateral": null,
+      "pricing": {
+        "kind": "aggregate"
+      }
+    },
+    {
+      "symbol": "USDC_BASE",
+      "classification": {
+        "economic_asset": "USDC",
+        "instrument_type": "stablecoin",
+        "traits": []
+      },
+      "chain": "eip155:8453",
+      "caip19": "eip155:8453/erc20:0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      "token": {
+        "kind": "erc20",
+        "address": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+      },
+      "decimals": 6,
+      "ledger_asset": "USDC_BASE",
+      "collateral": null,
+      "pricing": {
+        "kind": "fixed_usd",
+        "price_e8": 100000000
+      }
+    },
+    {
+      "symbol": "SOL_SOLANA",
+      "classification": {
+        "economic_asset": "SOL",
+        "instrument_type": "native",
+        "traits": []
+      },
+      "chain": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+      "caip19": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501",
+      "token": {
+        "kind": "native"
+      },
+      "decimals": 9,
+      "ledger_asset": "SOL_SOLANA",
+      "collateral": null,
+      "pricing": {
+        "kind": "aggregate"
+      }
+    },
+    {
+      "symbol": "USDC_SOLANA",
+      "classification": {
+        "economic_asset": "USDC",
+        "instrument_type": "stablecoin",
+        "traits": []
+      },
+      "chain": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+      "caip19": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "token": {
+        "kind": "spl",
+        "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+      },
+      "decimals": 6,
+      "ledger_asset": "USDC_SOLANA",
+      "collateral": null,
+      "pricing": {
+        "kind": "fixed_usd",
+        "price_e8": 100000000
+      }
+    },
+    {
+      "symbol": "USDC",
+      "chain": "hlcore:mainnet",
+      "caip19": "hlcore:mainnet/hip1:0x6d1e7cde53ba9467b783cb7c530ce054",
+      "token": {
+        "kind": "hip1",
+        "token_id": "0x6d1e7cde53ba9467b783cb7c530ce054"
+      },
+      "decimals": 8,
+      "ledger_asset": null,
+      "collateral": {
+        "index": 1,
+        "venue": 1,
+        "price_index": 1,
+        "factor": 1000000,
+        "enabled": true
+      },
+      "classification": {
+        "economic_asset": "USDC",
+        "instrument_type": "stablecoin",
+        "traits": []
+      },
+      "pricing": {
+        "kind": "fixed_usd",
+        "price_e8": 100000000
+      }
+    },
+    {
+      "symbol": "BTC",
+      "chain": "hlcore:mainnet",
+      "caip19": "hlcore:mainnet/hip1:0x00000000000000000000000000000001",
+      "token": {
+        "kind": "hip1",
+        "token_id": "0x00000000000000000000000000000001"
+      },
+      "decimals": 8,
+      "ledger_asset": null,
+      "collateral": {
+        "index": 3,
+        "venue": 1,
+        "price_index": 3,
+        "factor": 800000,
+        "enabled": true
+      },
+      "classification": {
+        "economic_asset": "BTC",
+        "instrument_type": "wrapped",
+        "traits": []
+      },
+      "pricing": {
+        "kind": "aggregate"
+      }
+    },
+    {
+      "symbol": "WSOL",
+      "classification": {
+        "economic_asset": "SOL",
+        "instrument_type": "wrapped",
+        "traits": []
+      },
+      "chain": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+      "caip19": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:So11111111111111111111111111111111111111112",
+      "token": {
+        "kind": "spl",
+        "mint": "So11111111111111111111111111111111111111112"
+      },
+      "decimals": 9,
+      "ledger_asset": "WSOL",
+      "collateral": null,
+      "pricing": {
+        "kind": "aggregate"
+      }
+    },
+    {
+      "symbol": "JITOSOL",
+      "classification": {
+        "economic_asset": "SOL",
+        "instrument_type": "lst",
+        "traits": [
+          "yield_bearing"
+        ]
+      },
+      "chain": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+      "caip19": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn",
+      "token": {
+        "kind": "spl",
+        "mint": "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn"
+      },
+      "decimals": 9,
+      "ledger_asset": "JITOSOL",
+      "collateral": null,
+      "pricing": {
+        "kind": "aggregate"
+      }
+    },
+    {
+      "symbol": "MSOL",
+      "classification": {
+        "economic_asset": "SOL",
+        "instrument_type": "lst",
+        "traits": [
+          "yield_bearing"
+        ]
+      },
+      "chain": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+      "caip19": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So",
+      "token": {
+        "kind": "spl",
+        "mint": "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So"
+      },
+      "decimals": 9,
+      "ledger_asset": "MSOL",
+      "collateral": null,
+      "pricing": {
+        "kind": "aggregate"
+      }
+    },
+    {
+      "symbol": "JUPSOL",
+      "classification": {
+        "economic_asset": "SOL",
+        "instrument_type": "lst",
+        "traits": [
+          "yield_bearing"
+        ]
+      },
+      "chain": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+      "caip19": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v",
+      "token": {
+        "kind": "spl",
+        "mint": "jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v"
+      },
+      "decimals": 9,
+      "ledger_asset": "JUPSOL",
+      "collateral": null,
+      "pricing": {
+        "kind": "aggregate"
+      }
+    },
+    {
+      "symbol": "WETH",
+      "classification": {
+        "economic_asset": "ETH",
+        "instrument_type": "wrapped",
+        "traits": []
+      },
+      "chain": "eip155:1",
+      "caip19": "eip155:1/erc20:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+      "token": {
+        "kind": "erc20",
+        "address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+      },
+      "decimals": 18,
+      "ledger_asset": "WETH",
+      "collateral": null,
+      "pricing": {
+        "kind": "aggregate"
+      }
+    },
+    {
+      "symbol": "STETH",
+      "classification": {
+        "economic_asset": "ETH",
+        "instrument_type": "lst",
+        "traits": [
+          "yield_bearing"
+        ]
+      },
+      "chain": "eip155:1",
+      "caip19": "eip155:1/erc20:0xae7ab96520de3a18e5e111b5eaab095312d7fe84",
+      "token": {
+        "kind": "erc20",
+        "address": "0xae7ab96520de3a18e5e111b5eaab095312d7fe84"
+      },
+      "decimals": 18,
+      "ledger_asset": "STETH",
+      "collateral": null,
+      "pricing": {
+        "kind": "aggregate"
+      }
+    },
+    {
+      "symbol": "WSTETH",
+      "classification": {
+        "economic_asset": "ETH",
+        "instrument_type": "wrapped_lst",
+        "traits": [
+          "yield_bearing"
+        ]
+      },
+      "chain": "eip155:1",
+      "caip19": "eip155:1/erc20:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+      "token": {
+        "kind": "erc20",
+        "address": "0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0"
+      },
+      "decimals": 18,
+      "ledger_asset": "WSTETH",
+      "collateral": null,
+      "pricing": {
+        "kind": "aggregate"
+      }
+    },
+    {
+      "symbol": "CBETH",
+      "classification": {
+        "economic_asset": "ETH",
+        "instrument_type": "lst",
+        "traits": [
+          "yield_bearing"
+        ]
+      },
+      "chain": "eip155:1",
+      "caip19": "eip155:1/erc20:0xbe9895146f7af43049ca1c1ae358b0541ea49704",
+      "token": {
+        "kind": "erc20",
+        "address": "0xbe9895146f7af43049ca1c1ae358b0541ea49704"
+      },
+      "decimals": 18,
+      "ledger_asset": "CBETH",
+      "collateral": null,
+      "pricing": {
+        "kind": "aggregate"
+      }
+    },
+    {
+      "symbol": "CBBTC",
+      "classification": {
+        "economic_asset": "BTC",
+        "instrument_type": "wrapped",
+        "traits": []
+      },
+      "chain": "eip155:1",
+      "caip19": "eip155:1/erc20:0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf",
+      "token": {
+        "kind": "erc20",
+        "address": "0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf"
+      },
+      "decimals": 8,
+      "ledger_asset": "CBBTC",
+      "collateral": null,
+      "pricing": {
+        "kind": "aggregate"
+      }
+    },
+    {
+      "symbol": "TBTC",
+      "classification": {
+        "economic_asset": "BTC",
+        "instrument_type": "wrapped",
+        "traits": []
+      },
+      "chain": "eip155:1",
+      "caip19": "eip155:1/erc20:0x18084fba666a33d37592fa2633fd49a74dd93a88",
+      "token": {
+        "kind": "erc20",
+        "address": "0x18084fba666a33d37592fa2633fd49a74dd93a88"
+      },
+      "decimals": 18,
+      "ledger_asset": "TBTC",
+      "collateral": null,
+      "pricing": {
+        "kind": "aggregate"
+      }
+    },
+    {
+      "symbol": "LBTC",
+      "classification": {
+        "economic_asset": "BTC",
+        "instrument_type": "yield_bearing_btc",
+        "traits": [
+          "yield_bearing"
+        ]
+      },
+      "chain": "eip155:1",
+      "caip19": "eip155:1/erc20:0x8236a87084f8b84306f72007f36f2618a5634494",
+      "token": {
+        "kind": "erc20",
+        "address": "0x8236a87084f8b84306f72007f36f2618a5634494"
+      },
+      "decimals": 8,
+      "ledger_asset": "LBTC",
+      "collateral": null,
+      "pricing": {
+        "kind": "aggregate"
+      }
+    },
+    {
+      "symbol": "SOLVBTC",
+      "classification": {
+        "economic_asset": "BTC",
+        "instrument_type": "wrapped",
+        "traits": []
+      },
+      "chain": "eip155:1",
+      "caip19": "eip155:1/erc20:0x7a56e1c57c7475ccf742a1832b028f0456652f97",
+      "token": {
+        "kind": "erc20",
+        "address": "0x7a56e1c57c7475ccf742a1832b028f0456652f97"
+      },
+      "decimals": 18,
+      "ledger_asset": "SOLVBTC",
+      "collateral": null,
+      "pricing": {
+        "kind": "aggregate"
+      }
+    }
+  ],
+  "venues": [
+    {
+      "index": 1,
+      "kind": "hyper_core",
+      "name": "HyperCore spot"
+    },
+    {
+      "index": 2,
+      "kind": "ethereum",
+      "name": "Ethereum mainnet"
+    },
+    {
+      "index": 3,
+      "kind": "hyperliquid_perps",
+      "name": "Hyperliquid perps"
+    }
+  ],
+  "price_factors": [
+    {
+      "index": 1,
+      "source": "hyperliquid",
+      "symbol": "USDC",
+      "external_id": "spot:USDC"
+    },
+    {
+      "index": 2,
+      "source": "ethereum",
+      "symbol": "USDC",
+      "external_id": "erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+    },
+    {
+      "index": 3,
+      "source": "hyperliquid",
+      "symbol": "BTC",
+      "external_id": "perp:BTC"
+    },
+    {
+      "index": 4,
+      "source": "hyperliquid",
+      "symbol": "ETH",
+      "external_id": "perp:ETH"
+    }
+  ],
+  "perp_markets": [
+    {
+      "index": 1,
+      "venue": 3,
+      "price_index": 3,
+      "name": "BTC",
+      "symbol": "BTC",
+      "margin_tiers": [
+        {
+          "lower_bound_notional": 0,
+          "max_leverage": 40
+        },
+        {
+          "lower_bound_notional": 15000000000000000,
+          "max_leverage": 20
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "venue": 3,
+      "price_index": 4,
+      "name": "ETH",
+      "symbol": "ETH",
+      "margin_tiers": [
+        {
+          "lower_bound_notional": 0,
+          "max_leverage": 25
+        },
+        {
+          "lower_bound_notional": 10000000000000000,
+          "max_leverage": 15
+        }
+      ]
+    }
+  ]
+}

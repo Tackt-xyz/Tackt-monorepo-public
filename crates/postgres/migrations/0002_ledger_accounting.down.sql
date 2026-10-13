@@ -1,0 +1,1 @@
+DROP SCHEMA ledger CASCADE;
